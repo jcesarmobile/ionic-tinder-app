@@ -1,0 +1,55 @@
+// http://ionicframework.com/docs/v2/theming/
+
+
+// App Shared Imports
+// --------------------------------------------------
+// These are the imports which make up the design of this app.
+// By default each design mode includes these shared imports.
+// App Shared Sass variables belong in app.variables.scss.
+
+.toolbar-title {
+  color: #FF6969;
+}
+
+.verified {
+  color: #2A8CFA;
+  margin-left: 5px;
+  font-size: 24px;
+}
+
+.name {
+  display: inline-block;
+  margin-bottom: 0px;
+}
+
+.breed {
+  margin: 5px 0px 0px 0px;
+  color: #B1B1B1;
+}
+
+.age {
+  font-weight: 400;
+}
+
+card-stack {
+  display: block;
+  height: 100%;
+}
+
+tinder-card {
+  display: block;
+}
+
+.stacked {
+  background-color: #FFF;
+  position: absolute;
+  width: 350px;
+  height: 350px;
+  left: calc(50% - 175px);
+  top: 100px;
+
+  border: 1px solid #999;
+  box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
+  border-radius: 6px;
+  overflow: hidden;
+}
