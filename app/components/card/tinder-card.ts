@@ -1,5 +1,5 @@
-import { Component, ElementRef, Host, Input, ViewChild} from '@angular/core';
-import { Animation, DisableScroll, ViewController } from 'ionic-angular';
+import { Component, ElementRef, EventEmitter, Input, Output} from '@angular/core';
+import { Animation, App, DisableScroll, ViewController } from 'ionic-angular';
 
 import { PanGesture, PanGestureController } from '../../utils/gestures/pan-gesture';
 
@@ -11,24 +11,31 @@ import { PanGesture, PanGestureController } from '../../utils/gestures/pan-gestu
 })
 export class TinderCard {
 
+  @Output() cardReset: EventEmitter<any> = new EventEmitter<any>();
+  @Output() cardSwipeLeftToRight: EventEmitter<any> = new EventEmitter<any>();
+  @Output() cardSwipeRightToLeft: EventEmitter<any> = new EventEmitter<any>();
+
   @Input() enabled: boolean;
   @Input() yStackOffset: number;
   @Input() parentWidth: number;
+
   private rectangle: any;
   private panGesture: PanGesture;
 
   private currentRotationAngle: number;
   private currentX: number;
 
-  constructor(public elementRef: ElementRef, private panGestureController: PanGestureController, private viewController: ViewController) {
-    viewController.didEnter.subscribe( () => { this.didEnter(); } );
+  constructor(public elementRef: ElementRef, private app: App, private panGestureController: PanGestureController, private viewController: ViewController) {
+    //viewController.didEnter.subscribe( () => { this.didEnter(); } );
   }
 
-  didEnter() {
-    this.rectangle = this.elementRef.nativeElement.getBoundingClientRect();
-    this.panGesture = this.panGestureController.create(this.elementRef, { threshold: 1, disableScroll: DisableScroll.Always});
-    this.panGesture.onPanMove( (event) => { this.onPanMove(event) } );
-    this.panGesture.onPanEnd( (event) => { this.onPanEnd(event) } );
+  ngAfterViewInit() {
+    setTimeout( () => {
+      this.rectangle = this.elementRef.nativeElement.getBoundingClientRect();
+      this.panGesture = this.panGestureController.create(this.elementRef, { threshold: 1, disableScroll: DisableScroll.Always});
+      this.panGesture.onPanMove( (event) => { this.onPanMove(event) } );
+      this.panGesture.onPanEnd( (event) => { this.onPanEnd(event) } );
+    }, 250);
   }
 
   onPanMove(event: HammerInput) {
@@ -68,7 +75,15 @@ export class TinderCard {
       let distance = Math.abs(this.currentX - previousX);
       let velocity = Math.max(Math.abs(event.velocityX), MINIMUM_VELOCITY);
       let duration = distance / velocity;
+
+      this.app.setEnabled(false, duration);
       this.animateDrag(this.elementRef, previousX, this.currentX, this.yStackOffset, this.yStackOffset, previousRotationAngle, this.currentRotationAngle, duration, 'ease-in-out', () => {
+        this.app.setEnabled(true);
+        if ( event.deltaX > 0 ) {
+          this.cardSwipeLeftToRight.emit(null);
+        } else{
+          this.cardSwipeRightToLeft.emit(null);
+        }
       });
     }
   }
@@ -97,11 +112,16 @@ export class TinderCard {
   }
 
   animateReset(elementRef: ElementRef, previousX: number, previousY: number, currentY: number, previousAngleInRadians: number) {
+    this.app.setEnabled(false, RESET_DURATION_IN_MILLIS);
     let animation = new Animation(elementRef);
     animation.fromTo('translateX', `${previousX}px`, `${0}px`);
     animation.fromTo('translateY', `${previousY}px`, `${currentY}px`);
     animation.fromTo('rotate', `${previousAngleInRadians}rad`, `${0}rad`);
     animation.duration(RESET_DURATION_IN_MILLIS);
+    animation.onFinish( () => {
+      this.app.setEnabled(true);
+      this.cardReset.emit(null);
+    });
     animation.play();
   }
 }
